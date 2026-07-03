@@ -1,17 +1,36 @@
-# Digital Nurture 5.0 - Java FSE (Deep Skilling) Solutions
+# Cognizant Digital Nurture 5.0 - Java FSE (Deep Skilling)
 
-My hands-on solutions for the DN 5.0 Java FSE Deep Skilling program, organized week-wise.
+Mandatory hands-on solutions, organized by training week.
 
-## Week 1
-| Skill | Folder | Mandatory exercises |
-|-------|--------|---------------------|
-| Design Patterns & Principles | `Week1/1-DesignPatterns` | Singleton, Factory Method |
-| Data Structures & Algorithms | `Week1/2-DSA` | E-commerce Search, Financial Forecasting |
-| PL/SQL Programming | `Week1/3-PLSQL` | Control Structures, Stored Procedures |
+## Structure
+```
+cognizant-nurture/
+├── Week1/
+│   ├── Algorithms_Data_Structure/
+│   │   ├── Exercise2_EcommercePlatformSearch/
+│   │   └── Exercise7_FinancialForecasting/
+│   ├── Design_Patterns_and_Principles/
+│   │   ├── Exercise1_SingletonPattern/
+│   │   └── Exercise2_FactoryMethodPattern/
+│   └── PLSQL_Exercises/
+│       ├── Exercise1_ControlStructures/
+│       └── Exercise3_StoredProcedures/
+│
+├── Week2/
+│   ├── Spring_Core_Maven/
+│   │   ├── Exercise1_ConfiguringBasicSpringApp/
+│   │   ├── Exercise2_ImplementingDependencyInjection/
+│   │   └── Exercise4_CreatingConfiguringMavenProject/
+│   └── Spring_Data_JPA/
+│       ├── Exercise1_SpringDataJPA_QuickExample/
+│       └── Exercise2_JPA_Hibernate_SpringDataJPA_Differences/
+│
+└── Week3/
+    └── Exercise Spring/
+        └── spring-learn/   (Spring Web + XML bean config: Country & SimpleDateFormat)
+```
 
-## Week 2
-| Skill | Folder | Mandatory exercises |
-|-------|--------|---------------------|
-| JUnit 5 | `Week2/1-JUnit` | Setup, Assertions, AAA pattern |
-| Mockito | `Week2/2-Mockito` | Mocking & Stubbing, Verifying Interactions |
-| SLF4J Logging | `Week2/3-SLF4J` | Error messages & warning levels |
+## Tech Stack
+- JDK 17
+- Apache Maven
+- Oracle DB (PL/SQL), MySQL/H2 (Spring Data JPA)
