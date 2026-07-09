@@ -2,10 +2,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-       https://www.springframework.org/schema/beans/spring-beans.xsd">
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!-- A shared SimpleDateFormat bean so we don't create it in many places -->
-    <bean id="dateFormat" class="java.text.SimpleDateFormat">
+    <!-- HOL 1: SimpleDateFormat bean loaded via constructor injection -->
+    <bean id="dateFormat" class="java.text.SimpleDateFormat" scope="prototype">
         <constructor-arg value="dd/MM/yyyy"/>
     </bean>
 
