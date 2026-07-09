@@ -1,0 +1,45 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: payment-service
+
+# Expose Resilience4j actuator endpoints so you can watch state changes live
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, circuitbreakers, circuitbreakerevents, retries, retryevents
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      paymentCB:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10          # last 10 calls
+        minimum-number-of-calls: 5       # need at least 5 calls before deciding
+        failure-rate-threshold: 50       # if 50%+ of calls fail, open the circuit
+        wait-duration-in-open-state: 10s # stay open for 10s, then try half-open
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+
+  retry:
+    instances:
+      paymentRetry:
+        max-attempts: 3
+        wait-duration: 500ms
+        retry-exceptions:
+          - java.lang.RuntimeException
+
+logging:
+  level:
+    io.github.resilience4j: INFO
+    com.cognizant.payment: INFO

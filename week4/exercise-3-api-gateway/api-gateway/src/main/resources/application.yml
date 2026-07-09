@@ -1,0 +1,65 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: api-gateway
+
+  # Redis is required by Spring Cloud Gateway's RequestRateLimiter.
+  # Run:  docker run -d --name redis -p 6379:6379 redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  cloud:
+    gateway:
+      routes:
+        # Customer route: /api/customers/** → strip /api → forward to customer-service
+        - id: customer-route
+          uri: http://localhost:8181
+          predicates:
+            - Path=/api/customers/**
+          filters:
+            - StripPrefix=1        # strips /api  -> /customers/**
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@ipKeyResolver}"
+                redis-rate-limiter.replenishRate: 5   # 5 requests per second
+                redis-rate-limiter.burstCapacity: 10  # allow bursts up to 10
+
+        # Billing route: /api/bills/** → strip /api → forward to billing-service
+        - id: billing-route
+          uri: http://localhost:8182
+          predicates:
+            - Path=/api/bills/**
+          filters:
+            - StripPrefix=1
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@ipKeyResolver}"
+                redis-rate-limiter.replenishRate: 3
+                redis-rate-limiter.burstCapacity: 6
+
+        # Path rewriting demo: /v1/customers/** → /customers/**
+        - id: customer-rewrite-route
+          uri: http://localhost:8181
+          predicates:
+            - Path=/v1/customers/**
+          filters:
+            - RewritePath=/v1/customers/(?<segment>.*), /customers/${segment}
+
+      # Simple in-memory response caching for GET requests (Boot 3.x supports LocalResponseCache).
+      # Enables the LocalResponseCache filter that can then be added per-route or globally.
+      filter:
+        local-response-cache:
+          enabled: true
+          size: 5MB
+          time-to-live: 30s
+
+  # Optional: gateway metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway,health,info
