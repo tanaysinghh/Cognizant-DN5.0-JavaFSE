@@ -1,197 +1,57 @@
 # Week3 — Spring Boot, Spring REST & JWT Hands-On
 
-All 5 hands-on exercises combined into **one unified `spring-learn` project**, matching how the training builds up incrementally.
+Five hands-on exercises, each in its own folder. Each `HOLx/spring-learn/` is an independent, runnable Spring Boot 3.2.5 Maven project.
+
+Every HOL **builds on the previous one** — HOL 2 has HOL 1's code, HOL 3 has HOL 1 + 2, etc. If you want the final complete project, use **HOL 5**.
+
+## Layout
+
+```
+Week3/
+├── HOL1/  → Spring Boot bootstrap + SimpleDateFormat XML bean + logging
+├── HOL2/  → Hello World REST + MockMvc test
+├── HOL3/  → Employee & Department REST from XML (Controller/Service/Dao)
+├── HOL4/  → POST/PUT/DELETE + @Valid + GlobalExceptionHandler
+└── HOL5/  → Spring Security + JWT authentication
+```
 
 ## Stack
 
 - Java 17
 - Spring Boot **3.2.5**
-- Spring Security **6.x**
-- jjwt **0.12.5**
+- Spring Security **6.x** (HOL 5)
+- jjwt **0.12.5** (HOL 5)
 - Maven
 
-## Modernization notes (Spring Boot 3)
-
-The original hands-on doc references APIs that were **removed** in Spring Boot 3 / Spring Security 6. I migrated them without changing the exercise's intent:
-
-| Doc uses (old)                         | Code uses (Spring Boot 3)                |
-| -------------------------------------- | ---------------------------------------- |
-| `javax.validation.*`                   | `jakarta.validation.*`                   |
-| `javax.servlet.*`                      | `jakarta.servlet.*`                      |
-| `WebSecurityConfigurerAdapter`         | `SecurityFilterChain` bean               |
-| `antMatchers(...)`                     | `requestMatchers(...)`                   |
-| `jjwt` old API (`Jwts.parser().setSigningKey(...)`) | `jjwt 0.12` (`Jwts.parser().verifyWith(key).build().parseSignedClaims(token)`) |
-
-## What each HOL covers
-
-### HOL 1 — Bootstrap + Spring Core + Logging
-- `spring-learn` project created via Spring Initializr equivalents in `pom.xml`
-- `date-format.xml` — `SimpleDateFormat` bean loaded from XML config
-- `SpringLearnApplication.displayDate()` — retrieves the bean and parses `31/12/2018`
-- Logging configured in `application.properties` (levels + custom pattern)
-
-### HOL 2 — Hello World REST + MockMVC
-- `HelloController` → `GET /hello` → `"Hello World!!"`
-- `HelloControllerTest` uses `@WebMvcTest` + MockMvc to verify status + body
-
-### HOL 3 — Employee + Department REST (Controller / Service / Dao)
-- `employee.xml` — 4 employees, 3 departments, 4 shared skills loaded as Spring beans
-- `EmployeeDao` reads `employeeList` from XML into `EMPLOYEE_LIST`
-- `EmployeeService` (`@Service` + `@Transactional`), `EmployeeController` → `GET /employees`, `GET /employees/{id}`
-- Same three-layer setup for `Department` → `GET /departments`
-
-### HOL 4 — POST / PUT / DELETE + Validation + Global Exception Handling
-- Bean validation on `Employee`, `Department`, `Skill`, `Country`
-    - `@NotNull`, `@NotBlank`, `@Size(min, max)`, `@Min(0)`, `@JsonFormat(pattern="dd/MM/yyyy")`
-- `CountryController` → full CRUD (`GET`, `POST`, `PUT`, `DELETE`) following REST URL conventions
-- `EmployeeController` extended with `POST`, `PUT`, `DELETE` — all use `@Valid`
-- `EmployeeNotFoundException` mapped to **404** via `@ResponseStatus`
-- `GlobalExceptionHandler` (extends `ResponseEntityExceptionHandler`):
-    - Catches `MethodArgumentNotValidException` → returns 400 with a `messages` array of field errors
-    - Catches `HttpMessageNotReadableException` for cases like passing a string in a numeric `id` field
-
-### HOL 5 — Spring Security + JWT
-- `SecurityConfig` — 2 in-memory users: `admin/pwd` (ROLE_ADMIN), `user/pwd` (ROLE_USER)
-- `/authenticate` — Basic auth required, returns a signed JWT
-- `JwtAuthorizationFilter` — reads `Authorization: Bearer <token>`, verifies signature, sets security context
-- Stateless session policy — every request must present a token
-- `/hello` intentionally left open for easy demo
-
-## Run it
+## Run any HOL
 
 ```bash
-cd spring-learn
+cd HOL<n>/spring-learn
 mvn spring-boot:run
 ```
 
-The app starts on **port 8083** (matches HOL 2's sample URL).
+Every HOL runs on **port 8083**.
 
-## Test it (curl commands)
+## What each HOL covers
 
-### HOL 1 — check console output
-Watch startup logs — you'll see `Parsed date: Mon Dec 31 00:00:00 ... 2018` from `displayDate()`.
+| HOL | Focus                                                              |
+| --- | ------------------------------------------------------------------ |
+| 1   | `@SpringBootApplication`, `main()`, load `SimpleDateFormat` bean from `date-format.xml`, logging config (level + pattern) |
+| 2   | `@RestController`, `@GetMapping`, MockMvc end-to-end test          |
+| 3   | Employee/Department loaded from `employee.xml` via Dao → Service (`@Transactional`) → Controller; `GET /employees`, `GET /departments` |
+| 4   | Full CRUD (`@Post/Put/DeleteMapping`); bean validation (`@Valid`, `@NotNull`, `@Size`, `@Min`, `@JsonFormat`); `EmployeeNotFoundException` with `@ResponseStatus`; `GlobalExceptionHandler` for validation + malformed JSON |
+| 5   | Spring Security 6 with `SecurityFilterChain` bean; in-memory users; `/authenticate` returns JWT; `JwtAuthorizationFilter` verifies Bearer tokens |
 
-### HOL 2 — Hello (public)
-```bash
-curl http://localhost:8083/hello
-# → Hello World!!
-```
+Each HOL folder has its own README with run commands and test curls.
 
-### HOL 3 — Employee / Department (needs JWT — see HOL 5 first)
-```bash
-# 1. Get a token
-TOKEN=$(curl -s -u user:pwd http://localhost:8083/authenticate)
-echo $TOKEN
+## Modernization note (Spring Boot 3)
 
-# 2. Use it
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8083/employees
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8083/employees/1
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8083/departments
-```
+The training docs reference several APIs that were removed in the Jakarta EE / Spring Security 6 migration. Everything still matches the *intent* of each exercise but uses the current-compilable equivalents:
 
-### HOL 4 — Country CRUD + validation
-
-```bash
-# GET all
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8083/countries
-
-# POST — valid
-curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-     -X POST -d '{"code":"FR","name":"France"}' \
-     http://localhost:8083/countries
-
-# POST — invalid (empty fields) → 400 with error list from GlobalExceptionHandler
-curl -i -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-     -X POST -d '{"code":"","name":""}' \
-     http://localhost:8083/countries
-
-# PUT
-curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-     -X PUT -d '{"code":"IN","name":"Bharat"}' \
-     http://localhost:8083/countries
-
-# DELETE
-curl -H "Authorization: Bearer $TOKEN" -X DELETE http://localhost:8083/countries/JP
-```
-
-Employee update with malformed id (string instead of number) → triggers the `HttpMessageNotReadableException` branch:
-```bash
-curl -i -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-     -X PUT -d '{"id":"abc","name":"Test","salary":100,"permanent":true,"dateOfBirth":"01/01/2000"}' \
-     http://localhost:8083/employees
-# → 400 { "message": "Incorrect format for field 'id'" }
-```
-
-### HOL 5 — JWT flow
-
-```bash
-# Without a token → 401
-curl -i http://localhost:8083/countries
-
-# With Basic auth on any protected endpoint (other than /authenticate) → 401
-# because non-/authenticate endpoints require JWT, not Basic
-curl -i -u user:pwd http://localhost:8083/countries
-
-# Get JWT
-curl -s -u user:pwd http://localhost:8083/authenticate
-
-# Use it
-curl -H "Authorization: Bearer <paste-token>" http://localhost:8083/countries
-
-# Tamper with token → 401
-curl -i -H "Authorization: Bearer tampered.token.here" http://localhost:8083/countries
-```
-
-### Run unit tests
-
-```bash
-mvn test
-```
-
-Runs:
-- `HelloControllerTest` — HOL 2
-- `CountryControllerTest` — HOL 4 (both happy path + validation error path)
-
-## Project layout
-
-```
-Week3/
-└── spring-learn/
-    ├── pom.xml
-    └── src/
-        ├── main/
-        │   ├── java/com/cognizant/springlearn/
-        │   │   ├── SpringLearnApplication.java     # HOL 1 (main + displayDate)
-        │   │   ├── controller/
-        │   │   │   ├── HelloController.java        # HOL 2
-        │   │   │   ├── EmployeeController.java     # HOL 3+4
-        │   │   │   ├── DepartmentController.java   # HOL 3
-        │   │   │   └── CountryController.java      # HOL 4
-        │   │   ├── service/
-        │   │   │   ├── EmployeeService.java
-        │   │   │   └── DepartmentService.java
-        │   │   ├── dao/
-        │   │   │   ├── EmployeeDao.java
-        │   │   │   └── DepartmentDao.java
-        │   │   ├── model/
-        │   │   │   ├── Employee.java               # HOL 4 validation
-        │   │   │   ├── Department.java
-        │   │   │   ├── Skill.java
-        │   │   │   └── Country.java
-        │   │   ├── exception/
-        │   │   │   ├── EmployeeNotFoundException.java
-        │   │   │   └── GlobalExceptionHandler.java # HOL 4
-        │   │   └── security/                        # HOL 5
-        │   │       ├── SecurityConfig.java
-        │   │       ├── AuthController.java
-        │   │       ├── JwtAuthorizationFilter.java
-        │   │       └── JwtKeyProvider.java
-        │   └── resources/
-        │       ├── application.properties
-        │       ├── date-format.xml                 # HOL 1
-        │       └── employee.xml                    # HOL 3
-        └── test/java/com/cognizant/springlearn/
-            ├── HelloControllerTest.java             # HOL 2
-            ├── CountryControllerTest.java           # HOL 4
-            └── TestSecurityConfig.java
-```
+| Doc                            | Code                             |
+| ------------------------------ | -------------------------------- |
+| `javax.validation.*`           | `jakarta.validation.*`           |
+| `javax.servlet.*`              | `jakarta.servlet.*`              |
+| `WebSecurityConfigurerAdapter` | `SecurityFilterChain` bean       |
+| `antMatchers`                  | `requestMatchers`                |
+| jjwt 0.11 API                  | jjwt 0.12 (`verifyWith`, `parseSignedClaims`) |
